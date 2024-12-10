@@ -1,0 +1,34 @@
+{
+    "packages": [
+        {
+            "name": "mario-deluna/php-glfw",
+            "version": "v2.2.0",
+            "version_normalized": "2.2.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/mario-deluna/php-glfw.git",
+                "reference": "88c35405807594920534909e9287847fb9eae929"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/mario-deluna/php-glfw/zipball/88c35405807594920534909e9287847fb9eae929",
+                "reference": "88c35405807594920534909e9287847fb9eae929",
+                "shasum": ""
+            },
+            "require-dev": {
+                "phpunit/phpunit": "^9.5"
+            },
+            "time": "2024-08-18T19:56:15+00:00",
+            "type": "library",
+            "installation-source": "dist",
+            "notification-url": "https://packagist.org/downloads/",
+            "support": {
+                "issues": "https://github.com/mario-deluna/php-glfw/issues",
+                "source": "https://github.com/mario-deluna/php-glfw/tree/v2.2.0"
+            },
+            "install-path": "../mario-deluna/php-glfw"
+        }
+    ],
+    "dev": true,
+    "dev-package-names": []
+}

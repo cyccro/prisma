@@ -1,0 +1,63 @@
+name: Windows Build
+on: 
+  workflow_dispatch:  
+  release:
+    types: [published]
+jobs:
+  windows:
+    defaults:
+      run:
+        shell: cmd
+    strategy:
+      matrix:
+          version: ['8.1', '8.2', '8.3']
+          arch: [x64]
+          ts: [ts, nts]
+          # ts: [nts] # we are currently facing an issue on windows with the ZTS build, it crashes during the module initalisation 
+    runs-on: windows-latest
+    steps:
+      - name: Checkout PHP-GLFW
+        uses: actions/checkout@v2
+        
+      - name: Setup PHP
+        id: setup-php
+        uses: php/setup-php-sdk@v0.8
+        with:
+          version: ${{matrix.version}}
+          arch: ${{matrix.arch}}
+          ts: ${{matrix.ts}}
+          
+      - name: Enable Developer Command Prompt
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: ${{matrix.arch}}
+          toolset: ${{steps.setup-php.outputs.toolset}}
+          
+      - name: phpize
+        run: phpize
+        
+      - name: configure
+        run: configure --enable-glfw --with-prefix=${{steps.setup-php.outputs.prefix}}
+        
+      - name: make
+        run: nmake
+        
+      - run: ls -la
+      
+      - run: cd ${{matrix.arch}} && ls -la
+        
+      - run: cd ${{matrix.arch}}/Release && ls -la
+        if: ${{ matrix.ts == 'nts' }}
+        
+      - uses: actions/upload-artifact@v3
+        if: ${{ matrix.ts == 'ts' }}
+        with:
+          name: glfw_php${{matrix.version}}_ts_${{matrix.arch}}
+          path: ${{matrix.arch}}/Release_TS/php_glfw.dll
+        
+      - uses: actions/upload-artifact@v3
+        if: ${{ matrix.ts == 'nts' }}
+        with:
+          name: glfw_php${{matrix.version}}_nts_${{matrix.arch}}
+          path: ${{matrix.arch}}/Release/php_glfw.dll
+        
