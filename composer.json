@@ -1,0 +1,20 @@
+{
+    "name": "cyccro/prisma",
+    "description": "basic 3d graphics",
+    "type": "project",
+    "require": {
+        "mario-deluna/php-glfw": "^2.2"
+    },
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Cyccro\\Prisma\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "cyccro",
+            "email": "cycrohuh@gmail.com"
+        }
+    ]
+}
