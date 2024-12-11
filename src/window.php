@@ -2,16 +2,23 @@
 
 interface WindowHandler
 {
-	public function mouse_click(): void;
-	public function keydown(): void;
-	public function keyup(): void;
+	/**
+	 * @var $btn 0 is left, 1 is right, 2 is middle, 3, and 4 are macros and i don't know about them
+	 */
+	public function mouse_click(int $btn, Window $instance): void;
+	public function mouse_release(int $btn, Window $instance): void;
+	public function keydown(int $key, int $scan, Window $instance): void;
+	public function keyup(int $key, int $scan, Window $instance): void;
+	public function keypress(int $key, int $scan, Window $instance): void;
+	public function input_utf8(int $key, Window $instance): void;
 	public function update(float $dt, Window $instance): void;
 }
-
 
 class Window
 {
 	private $window;
+	private $title;
+	//this function supposes that glfwInit and terminate are handled by the user;
 	public function __construct($width = 800, $height = 600, $title = "Prisma Window")
 	{
 		// coisas padrões 
@@ -26,6 +33,7 @@ class Window
 		if (!$this->window) {
 			throw new \ErrorException("Could not create window");
 		}
+		$this->title = $title;
 		glfwMakeContextCurrent($this->window);
 		glfwSwapInterval(1); // não lembro o que isso faz, so copiei e coloquei 
 	}
@@ -33,8 +41,57 @@ class Window
 	{
 		$this->destroy();
 	}
+	public function get_size(int &$width, int &$height)
+	{
+		glfwGetWindowSize($this->window, $width, $height);
+	}
+	public function set_size(int $width, int $height)
+	{
+		glfwSetWindowSize($this->window, $width, $height);
+	}
+	public function set_title(string $title)
+	{
+		glfwSetWindowTitle($this->window, $title);
+		$this->title = $title;
+	}
+	public function title(): string
+	{
+		return $this->title;
+	}
+	public function get_cursor(float &$x, float &$y)
+	{
+		glfwGetCursorPos($this->window, $x, $y);
+	}
+	public function set_cursor(float $x, float $y)
+	{
+		glfwSetCursorPos($this->window, $x, $y);
+	}
+	public function set_to_clipboard(string $content)
+	{
+		glfwSetClipboardString($this->window, $content);
+	}
 	public function run(WindowHandler $handler)
 	{
+		glfwSetKeyCallback($this->window, function ($key, $scan, $c) use ($handler) {
+			switch ($c) {
+				case 0:
+					$handler->keyup($key, $scan, $this);
+					break;
+				case 1:
+					$handler->keydown($key, $scan, $this);
+					break;
+				case 2:
+					$handler->keypress($key, $scan, $this);
+					break;
+			}
+		});
+		glfwSetMouseButtonCallback($this->window, function ($btn, $pressed) use ($handler) {
+			if ($pressed) $handler->mouse_click($btn, $this);
+			else $handler->mouse_release($btn, $this);
+		});
+		glfwSetCharCallback($this->window, function ($a) use ($handler) {
+			$handler->input_utf8($a, $this);
+		});
 		$dt = microtime(true);
 		while (!glfwWindowShouldClose($this->window)) {
 			glfwPollEvents(); // Proccesser de evnetos
