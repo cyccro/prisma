@@ -3,6 +3,7 @@
 require_once "src/window.php";
 require_once "src/shader.php";
 require_once "src/fs.php";
+require_once "src/program.php";
 function main()
 {
 	if (!glfwInit()) throw new ErrorException("Could not initialize GLFW");
@@ -13,8 +14,7 @@ function main()
 	$f_file = File::open("./shaders/triangle/fragment.glsl");
 	$frag = $f_file->content();
 	$fragment = Shader::Fragment->create($frag);
-	echo $vertex . "\n";
-	echo $fragment . "\n";
+	$prog = new Program($vertex, $fragment);
 	$window->run();
 }
 main();
