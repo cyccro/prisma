@@ -14,12 +14,22 @@ interface WindowHandler
 	public function update(float $dt, Window $instance): void;
 }
 
+class DefaultHandler implements WindowHandler
+{
+	function mouse_click(int $btn, Window $instance): void {}
+	function mouse_release(int $btn, Window $instance): void {}
+	function keyup(int $key, int $scan, Window $instance): void {}
+	function keydown(int $key, int $scan, Window $instance): void {}
+	function keypress(int $key, int $scan, Window $instance): void {}
+	function input_utf8(int $key, Window $instance): void {}
+	function update(float $dt, Window $instance): void {}
+}
+
 class Window
 {
 	private $window;
-	private $title;
 	//this function supposes that glfwInit and terminate are handled by the user;
-	public function __construct($width = 800, $height = 600, $title = "Prisma Window")
+	public function __construct($width = 800, $height = 600, private $title = "Prisma Window")
 	{
 		// coisas padrões 
 		glfwWindowHint(GLFW_RESIZABLE, GL_TRUE);
@@ -30,16 +40,17 @@ class Window
 		//    criação da janela 
 		$this->window = glfwCreateWindow($width, $height, $title);
 		// Verificar se a criação da janela falhou
-		if (!$this->window) {
-			throw new \ErrorException("Could not create window");
-		}
-		$this->title = $title;
+		if (!$this->window) throw new \ErrorException("Could not create window");
 		glfwMakeContextCurrent($this->window);
 		glfwSwapInterval(1); // não lembro o que isso faz, so copiei e coloquei 
 	}
 	public function __destruct()
 	{
 		$this->destroy();
+	}
+	public function open_gl_version(): string
+	{
+		return glGetString(GL_VERSION);
 	}
 	public function get_size(int &$width, int &$height)
 	{
@@ -70,35 +81,41 @@ class Window
 	{
 		glfwSetClipboardString($this->window, $content);
 	}
-	public function run(WindowHandler $handler)
+	public function run(WindowHandler $handler = new DefaultHandler())
 	{
-		glfwSetKeyCallback($this->window, function ($key, $scan, $c) use ($handler) {
-			switch ($c) {
-				case 0:
-					$handler->keyup($key, $scan, $this);
-					break;
-				case 1:
-					$handler->keydown($key, $scan, $this);
-					break;
-				case 2:
-					$handler->keypress($key, $scan, $this);
-					break;
-			}
-		});
-		glfwSetMouseButtonCallback($this->window, function ($btn, $pressed) use ($handler) {
-			if ($pressed) $handler->mouse_click($btn, $this);
-			else $handler->mouse_release($btn, $this);
-		});
-		glfwSetCharCallback($this->window, function ($a) use ($handler) {
-			$handler->input_utf8($a, $this);
-		});
-		$dt = microtime(true);
-		while (!glfwWindowShouldClose($this->window)) {
+		if (get_class($handler) == "DefaultHandler") while (!glfwWindowShouldClose($this->window)) {
 			glfwPollEvents(); // Proccesser de evnetos
 			glfwSwapBuffers($this->window);
-			$now = microtime(true);
-			$handler->update($now - $dt, $this);
-			$dt = $now;
+		}
+		else {
+			glfwSetKeyCallback($this->window, function ($key, $scan, $c) use ($handler) {
+				switch ($c) {
+					case 0:
+						$handler->keyup($key, $scan, $this);
+						break;
+					case 1:
+						$handler->keydown($key, $scan, $this);
+						break;
+					case 2:
+						$handler->keypress($key, $scan, $this);
+						break;
+				}
+			});
+			glfwSetMouseButtonCallback($this->window, function ($btn, $pressed) use ($handler) {
+				if ($pressed) $handler->mouse_click($btn, $this);
+				else $handler->mouse_release($btn, $this);
+			});
+			glfwSetCharCallback($this->window, function ($a) use ($handler) {
+				$handler->input_utf8($a, $this);
+			});
+			$dt = microtime(true);
+			while (!glfwWindowShouldClose($this->window)) {
+				glfwPollEvents(); // Proccesser de evnetos
+				glfwSwapBuffers($this->window);
+				$now = microtime(true);
+				$handler->update($now - $dt, $this);
+				$dt = $now;
+			}
 		}
 	}
 	private function destroy()
