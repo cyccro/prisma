@@ -1,9 +1,12 @@
 <?php
 
+use GL\Buffer\FloatBuffer;
+
 require_once "src/window.php";
 require_once "src/shader.php";
 require_once "src/fs.php";
 require_once "src/program.php";
+require_once "src/buffer.php";
 function main()
 {
 	if (!glfwInit()) throw new ErrorException("Could not initialize GLFW");
@@ -15,6 +18,16 @@ function main()
 	$frag = $f_file->content();
 	$fragment = Shader::Fragment->create($frag);
 	$prog = new Program($vertex, $fragment);
+	$prog->use();
+	$vbo = BufferUsage::Vbo->create(new FloatBuffer([
+		0.0,
+		1.0,
+		1.0,
+		-1.0,
+		-1.0,
+		-1.0,
+	]))->use();
+	$vao = (new Vao())->register_attribute([VaoAttribute::Vec2])->use();
 	$window->run();
 }
 main();

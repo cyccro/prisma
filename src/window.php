@@ -27,6 +27,23 @@ class DefaultHandler implements WindowHandler
 
 class Window
 {
+	public static function check_gl_err(): void
+	{
+		$error = glGetError();
+		if ($error != GL_NO_ERROR) {
+			$errorMessage = match ($error) {
+				GL_INVALID_ENUM => "GL_INVALID_ENUM: An unacceptable value was specified for an enumerated argument.",
+				GL_INVALID_VALUE => "GL_INVALID_VALUE: A numeric argument was out of range.",
+				GL_INVALID_OPERATION => "GL_INVALID_OPERATION: The specified operation is not allowed in the current state.",
+				GL_STACK_OVERFLOW => "GL_STACK_OVERFLOW: Command would cause a stack overflow.",
+				GL_STACK_UNDERFLOW => "GL_STACK_UNDERFLOW: Command would cause a stack underflow.",
+				GL_OUT_OF_MEMORY => "GL_OUT_OF_MEMORY: There was not enough memory left to execute the command.",
+				GL_INVALID_FRAMEBUFFER_OPERATION => "GL_INVALID_FRAMEBUFFER_OPERATION: The framebuffer object is not complete.",
+				default => "UNKNOWN ERROR: Unknown OpenGL error code ($error)."
+			};
+			throw new ErrorException("OpenGL Error: $errorMessage");
+		}
+	}
 	private $window;
 	//this function supposes that glfwInit and terminate are handled by the user;
 	public function __construct($width = 800, $height = 600, private $title = "Prisma Window")
@@ -81,11 +98,15 @@ class Window
 	{
 		glfwSetClipboardString($this->window, $content);
 	}
+
 	public function run(WindowHandler $handler = new DefaultHandler())
 	{
 		if (get_class($handler) == "DefaultHandler") while (!glfwWindowShouldClose($this->window)) {
-			glfwPollEvents(); // Proccesser de evnetos
+			glClearColor(0, 0, 0, 1);
+			glClear(GL_COLOR_BUFFER_BIT);
+			glDrawArrays(GL_TRIANGLES, 0, 3);
 			glfwSwapBuffers($this->window);
+			glfwPollEvents(); // Proccesser de evnetos
 		}
 		else {
 			glfwSetKeyCallback($this->window, function ($key, $scan, $c) use ($handler) {
@@ -110,10 +131,11 @@ class Window
 			});
 			$dt = microtime(true);
 			while (!glfwWindowShouldClose($this->window)) {
-				glfwPollEvents(); // Proccesser de evnetos
-				glfwSwapBuffers($this->window);
+				glDrawArrays(GL_TRIANGLES, 0, 3);
 				$now = microtime(true);
 				$handler->update($now - $dt, $this);
+				glfwSwapBuffers($this->window);
+				glfwPollEvents(); // Proccesser de evnetos
 				$dt = $now;
 			}
 		}

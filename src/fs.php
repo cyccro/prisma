@@ -115,7 +115,7 @@ class FileSys
 		if (file_exists($path)) return fopen($path, "r+");
 		else return fopen($path, "w+");
 	}
-	public function __construct()
+	private function __construct()
 	{
 		throw new ErrorException("Invalid Constructor: FileSystem");
 	}

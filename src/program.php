@@ -22,4 +22,9 @@ class Program
 	{
 		glDeleteProgram($this->prog);
 	}
+	public function use()
+	{
+		glUseProgram($this->prog);
+		Window::check_gl_err();
+	}
 }
